@@ -1,0 +1,5 @@
+# mag5_1_MTRS
+
+Предмет: Mobilni technologii rozpodilenih sistem
+
+[Лекция-1](Lekts1.md)
