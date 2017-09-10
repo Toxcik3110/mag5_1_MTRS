@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>laba1</title>
+	<style type="text/css">
+		* {
+			margin:0;
+			padding: 0;
+			border: 0;
+		}
+		.cardFlex {
+			display: flex;
+		}
+		.fullWidth {
+			width: 100vw;
+		}
+		.fullWidthX2 {
+			width: 200vw;
+		}
+		.fullHeight {
+			height: 100vh;
+		}
+		.cardGap {
+			flex:1;
+		}
+		.cardGap2 {
+			flex:2;
+		}
+		.cardGap3 {
+			flex:3;
+		}
+		.cardGap4 {
+			flex:4;
+		}
+		.cardGap5 {
+			flex:5;
+		}
+		.centerFlex {
+			align-items: center;
+			justify-content: center;
+		}
+		.cardPlot {
+			background-color: #35f;
+		}
+		.cardSvg {
+			/*background-color: #f35;*/
+		}
+		.width100 {
+			width: 100%;
+		}
+		.height100{
+			height:100%;
+		}
+		.columnOrder {
+			flex-direction: column;
+		}
+		.justifyAround {
+			justify-content: space-around;
+		}
+
+	</style>
+	<script type="text/javascript">
+	// -1,1          0,1         1,1
+	// 
+	// -1,0          0,0         1,0
+	//
+	// -1,-1         0,-1        1,-1
+		var windVariants = [{
+			direction: [1,1],
+			velocity: 0.5,
+			hours: 0.5,
+		},{
+			direction: [0,1],
+			velocity: 1,
+			hours: 1,
+		},{
+			direction: [-1,0],
+			velocity: 0.5,
+			hours: 0.5,
+		},{
+			direction: [-1,-1],
+			velocity: 2,
+			hours: 1,
+		},{
+			direction: [1,-1],
+			velocity: 2.5,
+			hours: 0.5,
+		},{
+			direction: [0,-1],
+			velocity: 1,
+			hours: 0.5,
+		},{
+			direction: [-1,1],
+			velocity: 2,
+			hours: 0.5,
+		},{
+			direction: [0,1],
+			velocity: 1,
+			hours: 0.5,
+		},{
+			direction: [1,-1],
+			velocity: 0.5,
+			hours: 1,
+		},{
+			direction: [-1,0],
+			velocity: 1,
+			hours: 1,
+		}];
+		var windScenario = [[0,1,2,3,4,5,6,7,8,9], 
+							[9,8,7,6,5,4,3,2,1,0],
+							[0,1,2,3,4,9,8,7,6,5],
+							[8,7,6,5,0,1,2,3,4,1],
+							[9,8,7,0,1,2,6,5,4,3],
+							[7,1,2,8,4,9,6,5,9,0],
+							[0,2,6,7,0,1,9,8,7,6]];
+							///// 3            2
+
+							///// 4            1
+
+		// var startSquare = [[50, 50], [50, 50],   // 1
+		// 					[50, -50], [50, -50],    // 2
+		// 					[-50, -50], [-50, -50], // 3
+		// 					[-50, 50], [-50, 50]]; // 4
+
+		var size = 12000;
+
+		var numScenario = 5;
+
+		var proc = [];
+
+		var stateNum = 0;
+
+		function nextScenario() {
+			var sq = buildScenario(++numScenario, stateNum)
+			normalize(sq)
+		}
+
+
+		function prevScenario() {
+			var sq = buildScenario(--numScenario, stateNum)
+			normalize(sq)
+		}
+
+		function nextState() {
+			console.log(stateNum)
+			if(stateNum < proc.length-1) {
+				stateNum++;
+			}
+			normalize(proc[stateNum]);
+			// var sq = buildScenario(numScenario, stateNum)
+			// normalize()
+		}
+
+
+		function prevState() {
+			console.log(stateNum)
+			if(stateNum > 0) {
+				stateNum--;
+			}
+			console.log('rpoc', proc[stateNum])
+			normalize(proc[stateNum]);
+			// var sq = buildScenario(numScenario, stateNum)
+			// normalize(sq)
+		}
+
+		function prepareStartSquare() {
+			var startSquare = [[50, 50], [50, 50],   // 1
+							[50, -50], [50, -50],    // 2
+							[-50, -50], [-50, -50], // 3
+							[-50, 50], [-50, 50]]; // 4
+			return startSquare;
+		}
+
+		function preAdd(startSquare) {
+			for(var i = 0; i < startSquare.length; i++) {
+				// startSquare[i] = startSquare[i].split(',');
+				startSquare[i][0] = startSquare[i][0] + size/2;
+				// if(mY < startSquare[i][0])	mY = startSquare[i][0];
+				startSquare[i][1] = startSquare[i][1] + size/2;
+				// if (mX < startSquare[i][1]) mX = startSquare[i][1];
+			}
+			return startSquare;
+		}
+
+		function normalize(arr) {
+
+			// var str = "100,10 40,198 190,78 10,78 160,198";
+			// var nums = str.split(' ');
+			var mX = size;
+			var mY = size;
+			var nums = [...arr];
+			// console.log([...nums])
+			var str1 = '';
+			var poly = document.getElementById('poly');
+			// poly.points.clear();
+			for(var i = 0; i < nums.length; i++) {
+				var x = (nums[i][0]/mX)*100;
+				var y = (nums[i][1]/mY)*100;
+				// poly.points.appendItem(x,y);
+				// var p = poly.points.getItem(i);
+				// console.log(p)
+				// console.log(y,x)
+				str1 += (y + ',' + x + ' ');
+			}
+			poly.setAttribute('points', str1);
+			// console.log(str1)
+		}
+
+		function buildScenario(n) {
+			var startSquare = prepareStartSquare();
+			startSquare = preAdd(startSquare);
+			normalize(startSquare);
+			n = Math.abs(n % windScenario.length);
+			var deltastr = '';
+			for(var i = 0; i < windScenario[n].length; i++) {
+				var ws = windScenario[n][i];
+				var wv = windVariants[ws];
+				var delta = wv.velocity * 360 * wv.hours;
+				deltastr += delta + ' ';
+				var arr = [...startSquare];
+				switch(wv.direction.join(' ')) {
+					// 0,1 - bottom-right; 
+					// 2,3 - top-right; 
+					// 4,5 - top-left;
+					// 6,7 - bottom-left; 
+					case '-1 -1':
+						startSquare[7][1] += delta;
+						startSquare[0][1] += delta;
+						startSquare[1][1] += delta;
+						startSquare[2][1] += delta;
+
+						startSquare[7][0] += delta;
+						startSquare[0][0] += delta;
+						startSquare[1][0] += delta;
+						startSquare[2][0] += delta;
+					// console.log('-1 -1')
+						break;
+					case '1 -1':
+						startSquare[4][1] -= delta;
+						startSquare[1][1] -= delta;
+						startSquare[2][1] -= delta;
+						startSquare[3][1] -= delta;
+
+						startSquare[4][0] += delta;
+						startSquare[1][0] += delta;
+						startSquare[2][0] += delta;
+						startSquare[3][0] += delta;
+					// console.log('1 -1')
+						break;
+					case '-1 1':
+						startSquare[0][1] += delta;
+						startSquare[5][1] += delta;
+						startSquare[6][1] += delta;
+						startSquare[7][1] += delta;
+
+						startSquare[0][0] -= delta;
+						startSquare[5][0] -= delta;
+						startSquare[6][0] -= delta;
+						startSquare[7][0] -= delta;
+					// console.log('-1 1')
+						break;
+					case '1 1':
+						startSquare[6][1] -= delta;
+						startSquare[3][1] -= delta;
+						startSquare[4][1] -= delta;
+						startSquare[5][1] -= delta;
+
+						startSquare[6][0] -= delta;
+						startSquare[3][0] -= delta;
+						startSquare[4][0] -= delta;
+						startSquare[5][0] -= delta;
+					// console.log('1 1')
+						break;
+					case '0 -1':
+					// console.log('0 -1')
+							startSquare[2][1] -= delta;
+							startSquare[3][1] -= delta;
+							startSquare[4][1] -= delta;
+							startSquare[5][1] -= delta;
+						break;
+					case '0 1':
+					// console.log('0 1')
+							startSquare[0][1] += delta;
+							startSquare[1][1] += delta;
+							startSquare[6][1] += delta;
+							startSquare[7][1] += delta;
+						break;
+					case '-1 0':
+					// console.log('-1 0')
+							startSquare[4][0] -= delta;
+							startSquare[5][0] -= delta;
+							startSquare[6][0] -= delta;
+							startSquare[7][0] -= delta;
+						break;
+					case '1 0':
+					// console.log('1 0')
+							startSquare[0][0] += delta;
+							startSquare[1][0] += delta;
+							startSquare[2][0] += delta;
+							startSquare[3][0] += delta;
+						break;
+					default:
+					// console.log('other case', wv.direction[0] + ' ' + wv.direction[1])
+					// console.log('other case')
+						break;
+				}
+				var buff = [];
+				for(var k = 0; k < startSquare.length; k++) {
+					buff.push([startSquare[k][0], startSquare[k][1]])
+				}
+				proc = [...proc, buff];
+				// for(var j = 0; j < startSquare.length; j++) {
+					//TODO: move 8 points to the current dir
+				// }
+				// console.log(proc);
+				stateNum = proc.length - 1;
+
+				// console.log(delta);
+			}
+			// console.log(deltastr);
+			return startSquare;
+		}
+
+		function buildGrid() {
+			var str = ' ';
+			var poly = document.getElementById('path');
+			for(var i = 0; i < 13; i++) {
+				var x = ((100/12) * i);
+				str += 'M0 ' + x + 'L100 ' + x + ' ';
+				str += 'M' + x + ' 0' + 'L' + x + ' 100 ';
+			}
+			str += 'Z';
+			poly.setAttribute('d', str)
+			var poly1 = document.getElementById('strcts');
+			str = 'M50 0 L50 100 M0 50 L100 50 ';
+			var cell = (100/12);
+			// living-massive
+			str += `M0 ${cell*4} L0 ${cell*3} L${cell*1} ${cell*3} L${cell*1} ${cell*2} L${cell*2} ${cell*2} L${cell*2} ${cell*1} L${cell*3} ${cell*1} L${cell*3} 0 L${cell*4} 0 L0 0 L0 ${cell*4} `
+			// sanatoriy
+			str += `M${cell*9.4} ${cell*1} L${cell*8} ${cell*1} L${cell*8} ${cell*4} L${cell*11.7} ${cell*4} L${cell*9.4} ${cell*1} `
+			// sklad
+			str += 	`M${cell*10} ${cell*8} L${cell*11} ${cell*8} L${cell*11} ${cell*11} L${cell*8.5} ${cell*11} L${cell*8.5} ${cell*9.5} L${cell*10} ${cell*8} `
+			// aeroport
+			str += `M0 ${cell*7.5} L${cell*2} ${cell*7.5} L${cell*4} ${cell*9} L${cell*4} ${cell*12} L0 ${cell*12} L0 ${cell*7.5} `
+			poly1.setAttribute('d', str);
+			// console.log(str)
+		}
+	</script>
+</head>
+<body>
+	<div class="cardFlex fullWidth fullHeight columnOrder">
+		<div class="cardGap5 cardFlex">
+			<div class="cardFlex cardGap centerFlex">
+				<h1>plot</h1>
+			</div>
+			<div class="cardFlex cardGap centerFlex cardSvg">
+				<svg class='cardGap width100 height100' viewbox='0 0 100 100'>
+				  <polygon id='poly' points="51,51 51,49 49,49 49,51"
+				  style="fill:red;stroke:green;stroke-width:0.1;fill-rule:nonzero;" />
+				  <path id='strcts' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='black' stroke-width='0.3' />
+				  <path id='path' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='gray' stroke-width='0.1' />
+				</svg>
+			</div>
+		</div>
+		<div class="cardGap cardFlex cardPlot justifyAround">
+			<div class="cardGap"></div>
+			<button class="cardGap" onclick="prevScenario()"><h1>Prev Scenarion</h1></button>
+			<div class="cardGap"></div>
+			<button class="cardGap" onclick="nextScenario()"><h1>Next Scenario</h1></button>
+			<div class="cardGap"></div>
+			<button class="cardGap" onclick="prevState()"><h1>Prev State</h1></button>
+			<div class="cardGap"></div>
+			<button class="cardGap" onclick="nextState()"><h1>Next State</h1></button>
+			<div class="cardGap"></div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		buildGrid();
+		// preAdd();
+		var sq = buildScenario(5);
+		stateNum = -1;
+
+		// normalize(proc[stateNum]);
+	</script>
+</body>
+</html>
