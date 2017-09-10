@@ -124,21 +124,41 @@
 
 		var size = 12000;
 
+		var svgText = '';
+
 		var numScenario = 5;
 
 		var proc = [];
+		var procS = [];
+		var procT = [];
 
 		var stateNum = 0;
 
+		var startArea = 100*100; //fire area
+		var startHeight = 100;
+		var startWidth = 100;
+		var startRD = 0;
+		var startLD = 0;
+
+		var startCost = startArea * 10000; //10k per square meter
+
 		function nextScenario() {
+			proc = [];
+			procS = [];
+			procT = [];
 			var sq = buildScenario(++numScenario, stateNum)
-			normalize(sq)
+			// normalize(sq)
+			stateNum = -1;
 		}
 
 
 		function prevScenario() {
+			proc = [];
+			procS = [];
+			procT = [];
 			var sq = buildScenario(--numScenario, stateNum)
-			normalize(sq)
+			// normalize(sq)
+			stateNum = -1;
 		}
 
 		function nextState() {
@@ -146,7 +166,7 @@
 			if(stateNum < proc.length-1) {
 				stateNum++;
 			}
-			normalize(proc[stateNum]);
+			normalize(proc[stateNum], procS, procT);
 			// var sq = buildScenario(numScenario, stateNum)
 			// normalize()
 		}
@@ -157,9 +177,9 @@
 			if(stateNum > 0) {
 				stateNum--;
 			}
-			console.log('rpoc', proc[stateNum])
-			normalize(proc[stateNum]);
-			// var sq = buildScenario(numScenario, stateNum)
+			// console.log('rpoc', proc[stateNum])
+			normalize(proc[stateNum], procS, procT);
+			// var sq = buildScenario(numScenario, area, stateNum)
 			// normalize(sq)
 		}
 
@@ -182,7 +202,7 @@
 			return startSquare;
 		}
 
-		function normalize(arr) {
+		function normalize(arr, area, time) {
 
 			// var str = "100,10 40,198 190,78 10,78 160,198";
 			// var nums = str.split(' ');
@@ -203,7 +223,54 @@
 				str1 += (y + ',' + x + ' ');
 			}
 			poly.setAttribute('points', str1);
+			if(stateNum > 0) {
+				var plot = document.getElementById('plot');
+				var svgPlot = document.getElementById('svgPlot');
+				var mx = 0;
+				var my = 0;
+				for(var i = 0; i < stateNum; i++) {
+					if(mx < area[i]) mx = area[i];
+					if(my < time[i]) my = time[i];
+				}
+				var str = 'M1 99 ';
+				var textElements = '';
+				// console.log('time',time)
+				// console.log('area',area)
+				for(var i = 0; i < stateNum; i++) {
+					var x = (area[i]/mx)*90 + 1;
+					var y; 
+					if(my === 0) {
+						y = 1;
+					} else {
+						y = (time[i]/my)*90 + 1;
+					}
+					str += `L${x} ${100-y} `;
+					var xPos = x+5;
+					// console.log(i, stateNum)
+					if((i + 1 - stateNum) === 0) xPos = 70;
+					textElements += `<text font-size='3px' x="${xPos}" y="${100-y}">[${area[i]}:${time[i]}]</text>`;
+					// addText(x + 5,100-y,`[${area[i]}:${time[i]}]`,svgPlot);
+				}
+				// console.log(svgText)
+				svgPlot.innerHTML = svgText + textElements;
+				var graph = document.getElementById('plotGraph');
+				// console.log(plot.textContent);
+				// console.log(svgPlot.innerHTML)
+				// plot.textContent = area + ' ; ' + time;
+				// str += 'L99 1';
+				graph.setAttribute('d', str);
+			}
 			// console.log(str1)
+		}
+
+		function addText(x,y,val,node){
+			var newtxt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+			newtxt.setAttribute('x',x);
+			newtxt.setAttribute('y',y);
+			newtxt.setAttribute('font-size','3px');
+			newtxt.textContent = val;
+
+			node.appendChild(newtxt);
 		}
 
 		function buildScenario(n) {
@@ -211,13 +278,24 @@
 			startSquare = preAdd(startSquare);
 			normalize(startSquare);
 			n = Math.abs(n % windScenario.length);
+			{
+				var buff = [];
+				for(var k = 0; k < startSquare.length; k++) {
+					buff.push([startSquare[k][0], startSquare[k][1]])
+				}
+				proc = [...proc, buff];
+			}
 			var deltastr = '';
+			var totalTime = 0;
+			procT = [totalTime]
 			for(var i = 0; i < windScenario[n].length; i++) {
 				var ws = windScenario[n][i];
 				var wv = windVariants[ws];
 				var delta = wv.velocity * 360 * wv.hours;
+				totalTime += 3600 * wv.hours;
 				deltastr += delta + ' ';
 				var arr = [...startSquare];
+				var area = startArea;
 				switch(wv.direction.join(' ')) {
 					// 0,1 - bottom-right; 
 					// 2,3 - top-right; 
@@ -233,6 +311,8 @@
 						startSquare[0][0] += delta;
 						startSquare[1][0] += delta;
 						startSquare[2][0] += delta;
+						startRD += delta;
+						startArea += startWidth*delta + startHeight*delta + startRD*startLD*2;
 					// console.log('-1 -1')
 						break;
 					case '1 -1':
@@ -245,6 +325,8 @@
 						startSquare[1][0] += delta;
 						startSquare[2][0] += delta;
 						startSquare[3][0] += delta;
+						startLD += delta;
+						startArea += startWidth*delta + startHeight*delta + startRD*startLD*2;
 					// console.log('1 -1')
 						break;
 					case '-1 1':
@@ -257,6 +339,8 @@
 						startSquare[5][0] -= delta;
 						startSquare[6][0] -= delta;
 						startSquare[7][0] -= delta;
+						startLD += delta;
+						startArea += startWidth*delta + startHeight*delta + startRD*startLD*2;
 					// console.log('-1 1')
 						break;
 					case '1 1':
@@ -269,6 +353,8 @@
 						startSquare[3][0] -= delta;
 						startSquare[4][0] -= delta;
 						startSquare[5][0] -= delta;
+						startRD += delta;
+						startArea += startWidth*delta + startHeight*delta + startRD*startLD*2;
 					// console.log('1 1')
 						break;
 					case '0 -1':
@@ -277,6 +363,8 @@
 							startSquare[3][1] -= delta;
 							startSquare[4][1] -= delta;
 							startSquare[5][1] -= delta;
+							startHeight += delta;
+							startArea += startWidth * delta;
 						break;
 					case '0 1':
 					// console.log('0 1')
@@ -284,6 +372,8 @@
 							startSquare[1][1] += delta;
 							startSquare[6][1] += delta;
 							startSquare[7][1] += delta;
+							startHeight += delta;
+							startArea += startWidth * delta;
 						break;
 					case '-1 0':
 					// console.log('-1 0')
@@ -291,6 +381,8 @@
 							startSquare[5][0] -= delta;
 							startSquare[6][0] -= delta;
 							startSquare[7][0] -= delta;
+							startWidth += delta;
+							startArea += startHeight*delta;
 						break;
 					case '1 0':
 					// console.log('1 0')
@@ -298,6 +390,8 @@
 							startSquare[1][0] += delta;
 							startSquare[2][0] += delta;
 							startSquare[3][0] += delta;
+							startWidth += delta;
+							startArea += startHeight * delta;
 						break;
 					default:
 					// console.log('other case', wv.direction[0] + ' ' + wv.direction[1])
@@ -309,6 +403,9 @@
 					buff.push([startSquare[k][0], startSquare[k][1]])
 				}
 				proc = [...proc, buff];
+				procS = [...procS, area];
+				procT = [...procT, totalTime];
+
 				// for(var j = 0; j < startSquare.length; j++) {
 					//TODO: move 8 points to the current dir
 				// }
@@ -317,20 +414,23 @@
 
 				// console.log(delta);
 			}
+			procS = [...procS, startArea];
 			// console.log(deltastr);
 			return startSquare;
 		}
 
 		function buildGrid() {
 			var str = ' ';
-			var poly = document.getElementById('path');
-			for(var i = 0; i < 13; i++) {
-				var x = ((100/12) * i);
-				str += 'M0 ' + x + 'L100 ' + x + ' ';
-				str += 'M' + x + ' 0' + 'L' + x + ' 100 ';
-			}
-			str += 'Z';
-			poly.setAttribute('d', str)
+			var poly = document.getElementsByClassName('path');
+			for(var j = 0; j < poly.length; j++) {
+				for(var i = 0; i < 13; i++) {
+					var x = ((100/12) * i);
+					str += 'M0 ' + x + 'L100 ' + x + ' ';
+					str += 'M' + x + ' 0' + 'L' + x + ' 100 ';
+				}
+				str += 'Z';
+				poly[j].setAttribute('d', str)
+			}			
 			var poly1 = document.getElementById('strcts');
 			str = 'M50 0 L50 100 M0 50 L100 50 ';
 			var cell = (100/12);
@@ -351,23 +451,30 @@
 	<div class="cardFlex fullWidth fullHeight columnOrder">
 		<div class="cardGap5 cardFlex">
 			<div class="cardFlex cardGap centerFlex">
-				<h1>plot</h1>
+				<svg class='cardGap width100 height100' id='svgPlot' viewbox='0 0 100 100'>
+				  <!-- <polygon id='polyplot' points="51,51 51,49 49,49 49,51"
+				  style="fill:red;stroke:green;stroke-width:0.1;fill-rule:nonzero;" /> -->
+				  <path d="M0 99 L100 99 M1 0 L1 100 Z" fill='none' stroke='black' stroke-width='0.3' />
+				  <path class='path' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='gray' stroke-width='0.1' />
+				  <path id='plotGraph' d="" fill='none' stroke='red' stroke-width='0.3' />
+				  <text font-size='1px' id='plot' x="0" y="15" fill="red"></text>
+				</svg>
 			</div>
-			<div class="cardFlex cardGap centerFlex cardSvg">
+			<div class="cardFlex cardGap centerFle, areax cardSvg">
 				<svg class='cardGap width100 height100' viewbox='0 0 100 100'>
 				  <polygon id='poly' points="51,51 51,49 49,49 49,51"
 				  style="fill:red;stroke:green;stroke-width:0.1;fill-rule:nonzero;" />
 				  <path id='strcts' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='black' stroke-width='0.3' />
-				  <path id='path' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='gray' stroke-width='0.1' />
+				  <path class='path' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='gray' stroke-width='0.1' />
 				</svg>
 			</div>
 		</div>
 		<div class="cardGap cardFlex cardPlot justifyAround">
 			<div class="cardGap"></div>
-			<button class="cardGap" onclick="prevScenario()"><h1>Prev Scenarion</h1></button>
+			<!-- <button class="cardGap" onclick="prevScenario()"><h1>Prev Scenarion</h1></button>
 			<div class="cardGap"></div>
 			<button class="cardGap" onclick="nextScenario()"><h1>Next Scenario</h1></button>
-			<div class="cardGap"></div>
+			<div class="cardGap"></div> -->
 			<button class="cardGap" onclick="prevState()"><h1>Prev State</h1></button>
 			<div class="cardGap"></div>
 			<button class="cardGap" onclick="nextState()"><h1>Next State</h1></button>
@@ -376,6 +483,7 @@
 	</div>
 	<script type="text/javascript">
 		buildGrid();
+		svgText = document.getElementById('svgPlot').innerHTML;
 		// preAdd();
 		var sq = buildScenario(5);
 		stateNum = -1;
