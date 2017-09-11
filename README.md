@@ -3,3 +3,5 @@
 Предмет: Mobilni technologii rozpodilenih sistem
 
 [Лекция-1](Lekts1.md)
+
+[Лекция-2](Lekts2.md)
