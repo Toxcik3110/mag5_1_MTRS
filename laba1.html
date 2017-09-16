@@ -122,7 +122,8 @@
 		// 					[-50, -50], [-50, -50], // 3
 		// 					[-50, 50], [-50, 50]]; // 4
 
-		var size = 7200;
+		var size = 12000;
+		var speedMul = 5;
 
 		var svgText = '';
 
@@ -139,6 +140,10 @@
 		var startWidth = 100;
 		var startRD = 0;
 		var startLD = 0;
+		var timer;
+
+		var currentCount = 0;
+		var prevCount = -1;
 
 		var startCost = startArea * 10000; //10k per square meter
 
@@ -202,7 +207,7 @@
 			return startSquare;
 		}
 
-		function normalize(arr, area, time) {
+		function normalize(arr, area, time, update) {
 
 			// var str = "100,10 40,198 190,78 10,78 160,198";
 			// var nums = str.split(' ');
@@ -237,18 +242,26 @@
 				// console.log('time',time)
 				// console.log('area',area)
 				for(var i = 0; i < stateNum; i++) {
-					var x = (area[i]/mx)*90 + 1;
-					var y; 
+					var y = (area[i]/mx)*90 + 1;
+					var x; 
 					if(my === 0) {
-						y = 1;
+						x = 1;
 					} else {
-						y = (time[i]/my)*90 + 1;
+						x = (time[i]/my)*90 + 1;
 					}
-					str += `L${x} ${100-y} `;
-					var xPos = x+5;
-					// console.log(i, stateNum)
-					if((i + 1 - stateNum) === 0) xPos = 70;
-					textElements += `<text font-size='3px' x="${xPos}" y="${100-y}">[${area[i]} грн:${time[i]} с]</text>`;
+					str += `L${x} ${100-y}`;
+					// if(update !== undefined) {
+						if(i % (Math.round(stateNum/7)) === 0) {
+							// var xPos = x + (10 - (i/stateNum)*40);
+							var xPos = x;
+							// console.log(i, stateNum)
+							// var yPos = 95-(1/stateNum)*(i)*100;
+							var yPos = 100-y;
+							if((i + 1 - stateNum) === 0) xPos = 70;
+							textElements += `<text font-size='3px' x="${xPos}" y="${yPos}">[${area[i]*1000} грн:${time[i]} с]</text>
+							<circle cx="${x}" cy="${100-y}" r=".5" stroke="black" stroke-width=".3" fill="red" />`;
+						}
+					// }
 					// addText(x + 5,100-y,`[${area[i]}:${time[i]}]`,svgPlot);
 				}
 				// console.log(svgText)
@@ -287,13 +300,29 @@
 			}
 			var deltastr = '';
 			var totalTime = 0;
-			procT = [totalTime]
-			for(var i = 0; i < windScenario[n].length; i++) {
+			procT = [totalTime];
+			var i = 0;
+			var localTime = 0;
+			var timerSpeed = 0.03;
+			timer = setInterval(function() {
+				// normalize(startSquare);
+				// console.log(i)
+				var update = false;
+				if(localTime > windVariants[windScenario[n][i]].hours * 3600) {
+					i++;
+					update = true;
+					prevCount = i;
+					localTime = 0;	
+				}
+				if((i == windScenario[n].length-1)) {
+					window.clearInterval(timer);
+				}
 				var ws = windScenario[n][i];
 				var wv = windVariants[ws];
-				var delta = wv.velocity * 360 * wv.hours;
-				totalTime += 3600 * wv.hours;
-				deltastr += delta + ' ';
+				var delta = wv.velocity * speedMul * 360 * wv.hours * timerSpeed;
+				totalTime += 3600 * wv.hours * timerSpeed;
+				localTime += 3600 * wv.hours * timerSpeed;
+				// deltastr += delta + ' ';
 				var arr = [...startSquare];
 				var area = startArea;
 				switch(wv.direction.join(' ')) {
@@ -354,7 +383,7 @@
 						startSquare[4][0] -= delta;
 						startSquare[5][0] -= delta;
 						startRD += delta;
-						startArea += startWidth*delta + startHeight*delta + startRD*startLD*2*delta;
+						startArea += startWidth*delta + startHeight*delta + startRD*startLD*2;
 					// console.log('1 1')
 						break;
 					case '0 -1':
@@ -406,14 +435,15 @@
 				procS = [...procS, area];
 				procT = [...procT, totalTime];
 
+
 				// for(var j = 0; j < startSquare.length; j++) {
 					//TODO: move 8 points to the current dir
 				// }
 				// console.log(proc);
 				stateNum = proc.length - 1;
-
-				// console.log(delta);
-			}
+				normalize(proc[stateNum], procS, procT, update);
+			}, 10)
+			
 			procS = [...procS, startArea];
 			// console.log(deltastr);
 			return startSquare;
@@ -450,7 +480,8 @@
 <body>
 	<div class="cardFlex fullWidth fullHeight columnOrder">
 		<div class="cardGap5 cardFlex">
-			<div class="cardFlex cardGap centerFlex">
+			<div class="cardGap"></div>
+			<div class="cardFlex cardGap3 centerFlex">
 				<svg class='cardGap width100 height100' id='svgPlot' viewbox='0 0 100 100'>
 				  <!-- <polygon id='polyplot' points="51,51 51,49 49,49 49,51"
 				  style="fill:red;stroke:green;stroke-width:0.1;fill-rule:nonzero;" /> -->
@@ -458,39 +489,67 @@
 				  <path class='path' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='gray' stroke-width='0.1' />
 				  <path id='plotGraph' d="" fill='none' stroke='red' stroke-width='0.3' />
 				  <text font-size='1px' id='plot' x="0" y="15" fill="red"></text>
-				  <text font-size='4px' x="5" y="5" fill="black">Время, с.</text>
-				  <text font-size='4px' x="85" y="95" fill="black">Убытки, грн.</text>
+				  <text font-size='4px' x="5" y="5" fill="black">
+				  Убытки, грн.
+				  </text>
+				  <text font-size='4px' x="85" y="95" fill="black">
+				  Время, с.
+				  </text>
 				</svg>
 			</div>
-			<div class="cardFlex cardGap centerFle, areax cardSvg">
+			<div class="cardGap"></div>
+			<div class="cardFlex cardGap3 centerFle, areax cardSvg">
 				<svg class='cardGap width100 height100' viewbox='0 0 100 100'>
 				  <polygon id='poly' points="51,51 51,49 49,49 49,51"
 				  style="fill:red;stroke:green;stroke-width:0.1;fill-rule:nonzero;" />
 				  <path id='strcts' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='black' stroke-width='0.3' />
 				  <path class='path' d="M50 0 L50 100 M0 50 L100 50 Z" fill='none' stroke='gray' stroke-width='0.1' />
+				  <text font-size='4px' x="90" y="49" fill="black">
+				  X, км.
+				  </text>
+				  <text font-size='3px' x="5" y="80" fill="black">
+				  Аеропорт.
+				  </text>
+				  <text font-size='3px' x="1" y="5" fill="black">
+				  Жилой массив.
+				  </text>
+				  <text font-size='3px' x="72" y="82" fill="black">
+				  Склад боеприпасов.
+				  </text>
+				  <text font-size='3px' x="70" y="20" fill="black">
+				  Санаторий.
+				  </text>
+				  <text font-size='4px' x="50" y="0" fill="black">
+				  Y, км.
+				  </text>
 				</svg>
 			</div>
-		</div>
-		<div class="cardGap cardFlex cardPlot justifyAround">
 			<div class="cardGap"></div>
-			<!-- <button class="cardGap" onclick="prevScenario()"><h1>Prev Scenarion</h1></button>
+		</div>
+		<!-- <div class="cardGap cardFlex cardPlot justifyAround">
+			<div class="cardGap"></div>
+			<button class="cardGap" onclick="prevScenario()"><h1>Prev Scenarion</h1></button>
 			<div class="cardGap"></div>
 			<button class="cardGap" onclick="nextScenario()"><h1>Next Scenario</h1></button>
-			<div class="cardGap"></div> -->
+			<div class="cardGap"></div>
 			<button class="cardGap" onclick="prevState()"><h1>Prev State</h1></button>
 			<div class="cardGap"></div>
 			<button class="cardGap" onclick="nextState()"><h1>Next State</h1></button>
 			<div class="cardGap"></div>
-		</div>
+		</div> -->
 	</div>
 	<script type="text/javascript">
 		buildGrid();
 		svgText = document.getElementById('svgPlot').innerHTML;
 		// preAdd();
-		var sq = buildScenario(5);
+		var sq = buildScenario(3);
 		stateNum = -1;
 
 		// normalize(proc[stateNum]);
 	</script>
 </body>
 </html>
+
+<!-- подписать оси -->
+<!-- анимации -->
+<!-- колизии -->
