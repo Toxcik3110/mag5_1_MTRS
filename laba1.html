@@ -427,6 +427,8 @@
 					// console.log('other case')
 						break;
 				}
+				// area = areaFromCoords(startSquare); 
+				// console.log(startSquare)
 				var buff = [];
 				for(var k = 0; k < startSquare.length; k++) {
 					buff.push([startSquare[k][0], startSquare[k][1]])
@@ -467,7 +469,9 @@
 			// living-massive
 			str += `M0 ${cell*4} L0 ${cell*3} L${cell*1} ${cell*3} L${cell*1} ${cell*2} L${cell*2} ${cell*2} L${cell*2} ${cell*1} L${cell*3} ${cell*1} L${cell*3} 0 L${cell*4} 0 L0 0 L0 ${cell*4} `
 			// sanatoriy
-			str += `M${cell*9.4} ${cell*1} L${cell*8} ${cell*1} L${cell*8} ${cell*4} L${cell*11.7} ${cell*4} L${cell*9.4} ${cell*1} `
+			str += `M${cell*9.4} ${cell*1} L${cell*8} ${cell*1} L${cell*8} ${cell*4} L${cell*11.7} ${cell*4} `
+			// lake
+			str += `M${cell*8} ${cell*0} L${cell*(6+3.4)} ${cell*1} L${cell*(6+3.7)} ${cell*(2)} L${cell*(6+3.5)} ${cell*(3)} L${cell*(6+5.7)} ${cell*4} L${cell*12} ${cell*4} `
 			// sklad
 			str += 	`M${cell*10} ${cell*8} L${cell*11} ${cell*8} L${cell*11} ${cell*11} L${cell*8.5} ${cell*11} L${cell*8.5} ${cell*9.5} L${cell*10} ${cell*8} `
 			// aeroport
@@ -475,6 +479,16 @@
 			poly1.setAttribute('d', str);
 			// console.log(str)
 		}
+
+		// function areaFromCoords(coordArray) {
+		//     var x = coordArray;
+		//     var a = 0;
+		//     if (x.length % 2) return;
+		//     for (var i = 0, iLen = x.length - 1; i < iLen; i+=1) {
+		//         a += x[i][1] * x[i+1][0] - x[i+1][0] * x[i][1];
+		//     }
+		//     return Math.abs(a / 2);
+		// }
 	</script>
 </head>
 <body>
@@ -542,7 +556,7 @@
 		buildGrid();
 		svgText = document.getElementById('svgPlot').innerHTML;
 		// preAdd();
-		var sq = buildScenario(3);
+		var sq = buildScenario(5);
 		stateNum = -1;
 
 		// normalize(proc[stateNum]);
