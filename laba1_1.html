@@ -125,7 +125,7 @@
 		var fireArr = [];
 		var startArr;
 
-		var size = 80;
+		var size = 240;
 		var areaMul = 12000/size;
 		var speedMul = 5;
 
@@ -354,7 +354,8 @@
 							var yPos = 100-y;
 							if((i + 1 - stateNum) === 0) xPos = 70;
 							// console.log(`[${area[i]*1000} грн:${time[i]} с]`)
-							textElements += `<text font-size='2.5px' x="${xPos-10}" y="${yPos-2}">[${area[i]*10000} грн:${time[i]} с]</text>
+							textElements += 
+							`<text font-size='2.5px' x="${xPos-10}" y="${yPos-2}">[${area[i]*10000} грн:${time[i]} с]</text>
 							<circle cx="${x}" cy="${100-y}" r=".5" stroke="black" 
 							stroke-width=".3" fill=${graph.getAttribute('stroke')} />`;
 						}
@@ -557,8 +558,8 @@
 <body>
 	<div class="cardFlex fullWidth fullHeight columnOrder">
 		<div class="cardGap5 cardFlex">
-			<div class="cardGap"></div>
-			<div class="cardFlex cardGap3 centerFlex">
+			<!-- <div class="cardGap"></div> -->
+			<div class="cardFlex cardGap5 centerFlex">
 				<svg class='cardGap width100 height100' id='svgPlot' viewbox='0 0 100 100'>
 				  <!-- <polygon id='polyplot' points="51,51 51,49 49,49 49,51"
 				  style="fill:red;stroke:green;stroke-width:0.001;fill-rule:nonzero;" /> -->
@@ -581,7 +582,7 @@
 				</svg>
 			</div>
 			<div class="cardGap"></div>
-			<div class="cardFlex cardGap3 centerFle, areax cardSvg">
+			<div class="cardFlex cardGap5 centerFle, areax cardSvg">
 				<svg class='cardGap width100 height100' viewbox='0 0 100 100' id='svgArea'>
 				  <!-- <polygon id='poly' points="51,51 51,49 49,49 49,51"
 				  style="fill:red;stroke:green;stroke-width:0.1;fill-rule:nonzero;" /> -->
@@ -684,18 +685,15 @@
 				  </text>
 				</svg>
 			</div>
-			<div class="cardGap"></div>
+			<!-- <div class="cardGap"></div> -->
 		</div>
-		<div class="cardGap cardFlex cardPlot justifyAround">
+		<div class="cardGap cardFlex justifyAround">
 			<div class="cardGap"></div>
-			<button class="cardGap" onclick="prevScenario()"><h1>Prev Scenarion</h1></button>
+			<button class="cardGap" onclick="prevScenario()"><h1>Попередній сценарій</h1></button>
 			<div class="cardGap"></div>
-			<button class="cardGap" onclick="nextScenario()"><h1>Next Scenario</h1></button>
+			<button class="cardGap" onclick="nextScenario()"><h1>Наступний сценарій</h1></button>
 			<div class="cardGap"></div>
-			<button class="cardGap" onclick="prevState()"><h1>Prev State</h1></button>
-			<div class="cardGap"></div>
-			<button class="cardGap" onclick="nextState()"><h1>Next State</h1></button>
-			<div class="cardGap"></div>
+		
 		</div>
 	</div>
 	<script type="text/javascript">
