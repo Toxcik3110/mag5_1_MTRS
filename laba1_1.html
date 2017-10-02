@@ -127,7 +127,7 @@
 
 		var size = 240;
 		var areaMul = 12000/size;
-		var speedMul = 5;
+		var speedMul = 4;
 
 		var totalFire = 0;
 
@@ -544,8 +544,9 @@
 			str += `M0 ${cell*4} L0 ${cell*3} L${cell*1} ${cell*3} L${cell*1} ${cell*2} L${cell*2} ${cell*2} L${cell*2} ${cell*1} L${cell*3} ${cell*1} L${cell*3} 0 L${cell*4} 0 L0 0 L0 ${cell*4} `
 			// sanatoriy
 			str += `M${cell*9.4} ${cell*1} L${cell*8} ${cell*1} L${cell*8} ${cell*4} L${cell*11.7} ${cell*4} `
-			// lake
-			str += `M${cell*8} ${cell*0} L${cell*(6+3.4)} ${cell*1} L${cell*(6+3.7)} ${cell*(2)} L${cell*(6+3.5)} ${cell*(3)} L${cell*(6+5.7)} ${cell*4} L${cell*12} ${cell*4} `
+			// lake 
+			// M 8 0 L 9.4 1 L 9.7 2 L 9.5 3 L 11.7 4 L 12 4
+			str += `M${cell*8} ${cell*0} Q${cell*(6+3)} ${cell*0.4} ${cell*(6+3.4)} ${cell*1} Q${cell*(6+3.7)} ${cell*(1.5)} ${cell*(6+3.7)} ${cell*(2)} Q${cell*(6+3.5)} ${cell*(2.8)} ${cell*(6+3.5)} ${cell*(3)} Q${cell*(6+3.7)} ${cell*3.6} ${cell*(6+5.7)} ${cell*4} L${cell*12} ${cell*4} `
 			// sklad
 			str += 	`M${cell*10} ${cell*8} L${cell*11} ${cell*8} L${cell*11} ${cell*11} L${cell*8.5} ${cell*11} L${cell*8.5} ${cell*9} L${cell*10} ${cell*8} `
 			// aeroport
