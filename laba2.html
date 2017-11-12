@@ -66,15 +66,30 @@
 </head>
 <body>
 	<div class="cardFlex fullWidth fullHeight columnOrder">
-		<div class="cardGap"></div>
+		<div class="cardGap cardFlex centerFlex">
+			<h1 class="cardGap cardFlex centerFlex">
+				Map
+			</h1>
+		</div>
 		<div class="cardGap5 cardFlex">
 			<div class="cardFlex cardGap5 centerFlex">
-				<svg class='cardGap width100 height100' id='svgPlot' viewbox='0 0 800 600'>
-				  <path id='plot' d="" fill='none' stroke='red' stroke-width='1' />
+				<svg class='cardGap width100 height100' id='svgPlot' viewbox='0 0 800 600' style='background-color:#BAE4F7'>
+					<defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
+    </marker>
+  </defs>
+				  <path id='plot' d="" fill='none' stroke='red' stroke-width='1'  marker-end="url(#arrow)"/>
 				</svg>
 			</div>
+
 		</div>
-		<div class="cardGap"></div>
+		<div class="cardGap">
+			<div class="cardGap cardFlex centerFlex height100">
+				<button type="button" name="button" class="cardGap height100" onclick="prevStep()">stop</button>
+				<button type="button" name="button" class="cardGap height100" onclick="nextStep()">start</button>
+			</div>
+		</div>
 	</div>
 	<script type="text/javascript">
 		var plot = document.getElementById('plot');
@@ -85,52 +100,130 @@
 			var y = flows[i].y;
 			var vx = flows[i].vx;
 			var vy = flows[i].vy;
-			// var dx = x - (vx + x);
-			// var dy = y - (vy + y);
-			// var k = dx/dy;
-			// var dist = Math.sqrt(dx*dx + dy*dy);
-			str += `M${x} ${y} L${vx+x} ${vy+y}`;
+			var dx = x - (vx + x);
+			var dy = y - (vy + y);
+			var k = dx/dy;
+			var dist = Math.sqrt(dx*dx + dy*dy);
+			str += `<path d="M${x} ${y} L${vx+x} ${vy+y}" fill='none' stroke='red' stroke-width='1'  marker-end="url(#arrow)"/>`;
 		}
-		plot.setAttribute('d', str);
+		// plot.setAttribute('d', str);
+		svgPlot.innerHTML += str;
 		var svgPlotText = svgPlot.innerHTML;
 		var oil = [];
 		var oilDen = .1;
 		var oilRad1 = 40;
 		var oilRad2 = 30;
-		var oilCenterX = 100;
-		var oilCenterY = 550;
-		textElements = "";
-		for(var i = 0; i < oilRad2; i++) {
-			for(var j = 0; j < oilRad1; j++) {
-				if(j < oilRad1/2) {
-					if (((i - oilRad2/2) - Math.sqrt(j) < 0) && ((i - oilRad2/2) + Math.sqrt(j) > 0)) {
-						textElements +=
-						`<circle cx="${oilCenterX+j*(1/oilDen)}" cy="${oilCenterY-(i+oilRad2)*(1/oilDen)}" r="1" stroke="black"
-						stroke-width=".1" fill="purple" />`;
-					}
-				} else {
-					if (((i - oilRad2/2) - Math.sqrt(-j + oilRad1) < 0) && ((i - oilRad2/2) + Math.sqrt(-j + oilRad1) > 0)) {
-						textElements +=
-						`<circle cx="${oilCenterX+j*(1/oilDen)}" cy="${oilCenterY-i*(1/oilDen)+oilRad2/2}" r="1" stroke="black"
-						stroke-width=".1" fill="purple" />`;
+		var oilCenterX = 300;
+		var oilCenterY = 350;
+
+		oilDistribution();
+
+		function oilDistribution() {
+			var textElements = "";
+			for(var i = 0; i < oilRad2; i+=oilDen*3) {
+				for(var j = 0; j < oilRad1; j+=oilDen*3) {
+					if(j < oilRad1/2) {
+						if (((i - oilRad2/2) - Math.sqrt(j) < 0) && ((i - oilRad2/2) + Math.sqrt(j) > 0)) {
+							var x = oilCenterX+(j-oilRad1/2)*(1/oilDen);
+							var y = oilCenterY-(i-oilRad2/2)*(1/oilDen);
+							textElements +=
+							`<circle cx="${x}" cy="${y}" r="1" stroke="black"
+							stroke-width=".1" fill="purple" />`;
+							oil.push({x:x,y:y,h:0})
+						}
+					} else {
+						if (((i - oilRad2/2) - Math.sqrt(-j + oilRad1) < 0) && ((i - oilRad2/2) + Math.sqrt(-j + oilRad1) > 0)) {
+							var x = oilCenterX+(j-oilRad1/2)*(1/oilDen);
+							var y = oilCenterY-(i-oilRad2/2)*(1/oilDen);
+							textElements +=
+							`<circle cx="${x}" cy="${y}" r="1" stroke="black"
+							stroke-width=".1" fill="purple" />`;
+							oil.push({x:x,y:y,h:0})
+						}
 					}
 				}
-				// if(Math.abs(i - oilRad2*oilRad2*Math.sqrt(1 - (j*j)/(oilRad1*oilRad1))) < 1) {
-				// 	textElements +=
-				// 	`<circle cx="${oilCenterX+j*10}" cy="${600-oilCenterY+i*10}" r="1" stroke="black"
-				// 	stroke-width=".1" fill="blue" />`;
-				// } else if(Math.abs(i + oilRad2*oilRad2*Math.sqrt(1 - (j*j)/(oilRad1*oilRad1))) < 1) {
-				// 	textElements +=
-				// 	`<circle cx="${oilCenterX+j*10}" cy="${600-oilCenterY+i*10}" r="1" stroke="black"
-				// 	stroke-width=".1" fill="purple" />`;
-				// }
-				// textElements +=
-				// `<circle cx="${oilCenterX+j*10}" cy="${600-oilCenterY+i*10}" r="1" stroke="black"
-				// stroke-width=".1" fill="purple" />`;
 			}
+			console.log(oil.length);
+			svgPlot.innerHTML = svgPlotText + textElements;
 		}
-		svgPlot.innerHTML = svgPlotText + textElements;
 
+		function oilRender() {
+			var textElements = "";
+			for(var i = 0; i < oil.length; i++) {
+				var x = oil[i].x;
+				var y = oil[i].y;
+				// console.log(x);
+				textElements +=
+				`<circle cx="${x}" cy="${y}" r="1" stroke="black"
+				stroke-width=".1" fill="purple" />`;
+				// oil.push({x:x,y:y,h:0});
+			}
+			svgPlot.innerHTML = svgPlotText + textElements;
+		}
+
+		function moveOil(elem) {
+			var minimum = [flows[0],flows[1],flows[2]];
+			for (var i = 3; i < flows.length; i++) {
+				var dx = elem.x - flows[i].x;
+				var dy = elem.y - flows[i].y;
+				var dist = Math.sqrt(dx*dx+dy*dy);
+				if(Math.sqrt(minimum[0].x*minimum[0].x+minimum[0].y*minimum[0].y) < dist) {
+					minimum[0] = flows[i];
+				} else if(Math.sqrt(minimum[1].x*minimum[1].x+minimum[1].y*minimum[1].y) < dist) {
+					minimum[1] = flows[i];
+				} else if(Math.sqrt(minimum[2].x*minimum[2].x+minimum[2].y*minimum[2].y) < dist) {
+					minimum[2] = flows[i];
+				}
+			}
+			// console.log(minimum[0],minimum[1],minimum[2]);
+			var q = averVec(minimum[0],averVec(minimum[1],minimum[2]));
+			q.x = elem.x;
+			q.y = elem.y;
+			return q;
+		}
+
+		function averVec(v1, v2) {
+			var v3 = {vx:0, vy:0};
+			v3.vx = (v1.vx+v2.vx)/2;
+			v3.vy = (v1.vy+v2.vy)/2
+			return v3;
+		}
+
+		var timer;
+
+		function prevStep() {
+			clearInterval(timer);
+		}
+
+		function nextStep() {
+			var delta = 10;
+			timer = setInterval(function() {
+				var dt = delta/10;
+				for (var i = 0; i < oil.length; i++) {
+					var q = moveOil(oil[i]);
+					oil[i].vx = q.vx;
+					oil[i].vy = q.vy;
+					oil[i].x = oil[i].vx*dt + oil[i].x;
+					oil[i].y = oil[i].vy*dt + oil[i].y;
+					// console.log('new x:',oil[i].x);
+				}
+				oilRender();
+				console.log('render');
+			}, delta);
+		}
+
+		function timerStep(dt) {
+			for (var i = 0; i < oil.length; i++) {
+				var q = moveOil(oil[i]);
+				oil[i].vx = q.vx;
+				oil[i].vy = q.vy;
+				oil[i].x = oil[i].vx*dt + oil[i].x;
+				oil[i].y = oil[i].vy*dt + oil[i].y;
+				// console.log('new x:',oil[i].x);
+			}
+			oilRender();
+			console.log('render');
+		}
 
 	</script>
 </body>
